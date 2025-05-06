@@ -1,0 +1,54 @@
+# File: app/arc/helmrelease.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: gha-runner-scale-set-controller
+  namespace: arc-systems # Target namespace for ARC controller deployment
+spec:
+  interval: 15m # Reconciliation frequency
+  chart:
+    spec:
+      chart: gha-runner-scale-set-controller # Chart name as it appears in ProGet feed
+      # Specify the exact chart version mirrored in ProGet
+      version: "0.11.0" # e.g., "0.29.0"
+      sourceRef:
+        kind: HelmRepository
+        name: arc-helm-repo # Reference the HelmRepository above
+        namespace: arc-systems
+  install:
+    createNamespace: true
+  upgrade:
+    remediation:
+      remediateLastFailure: true # Attempt to fix failed upgrades
+  values:
+    # --- GitHub Authentication ---
+    # Configure based on the method used in '03-arc-github-auth.yaml'
+
+    # Method A: PAT
+    # githubPATSecret:
+    #   name: arc-github-auth-credentials # Secret name
+    #   key: github_token                # Key in the secret
+
+    # Method B: GitHub App (Recommended)
+    githubAppID: "<GITHUB_APP_ID>" # Can be plain text if not sensitive
+    githubAppInstallationID: "<GITHUB_APP_INSTALLATION_ID>" # Can be plain text
+    githubAppPrivateKeySecret:
+      name: arc-github-auth-credentials # Secret name
+      key: github_app_private_key      # Key in the secret
+
+    # --- Image Configuration (Point to ProGet mirrored images) ---
+    image:
+      repository: pb.sykehuspartner.no/privatsky-internal/actions/gha-runner-scale-set-controller # Adapt path
+      tag: "0.11.0" # e.g., "v0.29.0"
+    runnerImage: pb.sykehuspartner.no/privatsky-internal/actions/runner # Adapt path
+    runnerTag: "latest" # e.g., "latest" or specific tag
+
+    # --- Optional: Image Pull Secrets for Controller ---
+    # If the controller itself needs credentials beyond registries.yaml
+    # imagePullSecrets:
+    # - name: proget-docker-credentials # Use the secret defined earlier if needed
+
+    # --- Other ARC Helm chart values as needed ---
+    # Consult the specific ARC Helm chart version documentation for options
+    # Example: Define default runner namespace if different from controller
+    # runnerNamespace: "arc-runners"

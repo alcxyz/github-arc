@@ -1,0 +1,23 @@
+# File: clusters/arc-cluster-prod/kustomization-arc.yaml (Example path)
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: arc-application
+  namespace: flux-system
+spec:
+  interval: 15m # Reconciliation frequency
+  sourceRef:
+    kind: GitRepository
+    name: flux-system # Assumes default name from bootstrap
+    namespace: flux-system
+  # Path within the Git repo containing ARC manifests (HelmRepo, HelmRelease, secrets dir)
+  path: ./app/arc
+  # Default target namespace for manifests in the path (can be overridden)
+  targetNamespace: arc-systems
+  prune: true # Delete resources removed from Git
+  wait: true # Wait for resources to become ready
+  decryption:
+    provider: sops
+    secretRef:
+      # Reference the secret containing the age private key
+      name: sops-age

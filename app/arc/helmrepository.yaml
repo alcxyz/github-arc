@@ -1,0 +1,13 @@
+# File: app/arc/helmrepository.yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: arc-helm-repo
+  namespace: arc-systems # Sources belong in arc-system
+spec:
+  interval: 1h # Check frequency for new chart versions
+  url: https://pb.sykehuspartner.no/feeds/privatsky-artifacthub/ # e.g., https://proget.example.com/k3s-tooling/
+  type: default
+  secretRef:
+    # Reference the secret containing ProGet Helm feed credentials
+    name: proget-helm-credentials
